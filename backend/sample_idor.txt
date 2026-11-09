@@ -1,0 +1,39 @@
+# OWASP CYBERSECURITY KNOWLEDGE BASE
+
+## 1. INSECURE DIRECT OBJECT REFERENCE (IDOR)
+
+Insecure Direct Object Reference (IDOR) is an access control vulnerability that occurs when an application exposes references to internal objects, such as database IDs, account numbers, filenames, or document identifiers, without properly checking whether the requesting user is authorized to access them.
+
+For example, a user may access their profile through `/api/users/101`. If changing the ID to `/api/users/102` allows them to view another user's private information, the application has an IDOR vulnerability.
+
+### PREVENTION
+
+- Enforce server-side authorization checks on every request involving a specific resource.
+- Verify resource ownership before allowing users to read, update, or delete records.
+- Apply role-based access control (RBAC).
+- Deny access by default.
+- Never rely on hidden buttons or client-side validation for security.
+- Use indirect or unpredictable identifiers as an additional security layer, not as a replacement for authorization.
+- Test object-level authorization for every API endpoint that accepts resource identifiers.
+
+## 2. BROKEN ACCESS CONTROL
+
+Broken Access Control occurs when users can access resources, perform actions, or modify information beyond the permissions assigned to them.
+
+### COMMON RISKS
+
+- Unauthorized access to private user information.
+- Unauthorized modification or deletion of other users' records.
+- Horizontal privilege escalation, where one user accesses another user's resources.
+- Vertical privilege escalation, where an ordinary user gains administrator privileges.
+- Exposure of sensitive business or financial information.
+
+### PREVENTION
+
+- Enforce authorization on the server side.
+- Verify user roles and resource ownership for every sensitive operation.
+- Apply the principle of least privilege.
+- Deny access by default.
+- Prevent privilege escalation between ordinary users and administrators.
+- Test horizontal and vertical access control.
+- Log suspicious access attempts and review authorization failures.

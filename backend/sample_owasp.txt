@@ -1,0 +1,53 @@
+# OWASP CYBERSECURITY KNOWLEDGE BASE
+
+## 1. SQL INJECTION (SQLi)
+
+SQL Injection is a security vulnerability that occurs when an application includes untrusted user input in SQL queries without proper handling. Attackers may manipulate database queries through malicious input.
+
+### COMMON RISKS
+
+- Unauthorized access to sensitive database information.
+- Authentication bypass.
+- Unauthorized modification or deletion of database records.
+- Exposure of confidential customer information.
+- Potential compromise of database integrity.
+
+### PREVENTION
+
+- Use parameterized SQL queries.
+- Use prepared statements.
+- Validate input on the server side.
+- Apply least privilege to database accounts.
+- Avoid dynamically constructing SQL queries using untrusted input.
+- Use secure ORM features instead of unsafe raw SQL queries.
+- Do not expose database error messages to users.
+
+## 2. CROSS-SITE SCRIPTING (XSS)
+
+Cross-Site Scripting (XSS) occurs when untrusted content is executed as a script in a user's browser. It can allow malicious scripts to run in the context of a victim's session.
+
+### TYPES OF XSS
+
+**Stored XSS:** Malicious script content is stored on a server and executed when another user views the affected page.
+
+**Reflected XSS:** Malicious input is included in a server response and executed by a victim's browser.
+
+**DOM-Based XSS:** Client-side JavaScript processes untrusted data in an unsafe way, causing script execution in the browser.
+
+### COMMON RISKS
+
+- Unauthorized actions performed through a victim's session.
+- Exposure of sensitive information accessible to the browser.
+- Manipulation of webpage content.
+- Phishing through malicious webpage content.
+- Compromise of user trust and application integrity.
+
+### PREVENTION
+
+- Apply context-aware output encoding.
+- Sanitize untrusted HTML where appropriate.
+- Use Content Security Policy (CSP).
+- Avoid unsafe DOM manipulation.
+- Validate and handle user-generated content.
+- Prefer safe DOM APIs such as `textContent` instead of unsafe HTML insertion.
+- Use secure cookie settings, including HttpOnly and Secure where appropriate.
