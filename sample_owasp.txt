@@ -1,0 +1,35 @@
+
+OWASP CYBERSECURITY KNOWLEDGE BASE
+
+1. SQL INJECTION
+
+SQL Injection occurs when an application includes untrusted user input in SQL queries without proper handling. Attackers may manipulate database queries through malicious input.
+
+PREVENTION:
+- Use parameterized SQL queries.
+- Use prepared statements.
+- Validate input on the server.
+- Apply least privilege to database accounts.
+- Avoid dynamically constructing SQL queries.
+
+2. BROKEN ACCESS CONTROL
+
+Broken Access Control occurs when users can access resources or perform actions beyond their intended permissions.
+
+PREVENTION:
+- Enforce authorization on the server.
+- Verify resource ownership.
+- Apply role-based access control.
+- Deny access by default.
+- Test direct object reference vulnerabilities.
+
+3. CROSS SITE SCRIPTING (XSS)
+
+Cross Site Scripting occurs when untrusted content is executed as script in a user's browser.
+
+PREVENTION:
+- Apply context-aware output encoding.
+- Sanitize untrusted HTML where appropriate.
+- Use Content Security Policy.
+- Avoid unsafe DOM manipulation.
+- Validate and handle user-generated content.
