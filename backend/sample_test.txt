@@ -1,0 +1,21 @@
+
+SQL Injection (SQLi)
+
+SQL Injection is a web security vulnerability that occurs when an application includes untrusted user input in SQL queries without proper validation or parameterization.
+
+Prevention:
+1. Use parameterized queries.
+2. Use prepared statements.
+3. Validate user input.
+4. Apply least-privilege database permissions.
+5. Avoid dynamically constructing SQL queries.
+
+IDOR (Insecure Direct Object Reference)
+
+IDOR occurs when an application allows users to access resources belonging to other users by manipulating object identifiers.
+
+Prevention:
+1. Verify resource ownership on the server.
+2. Apply authorization checks to every request.
+3. Never rely only on frontend access controls.
+4. Use indirect references where appropriate.
