@@ -12,16 +12,23 @@ from app.rag.ingestion import (
 )
 
 
+USER_ID = 101
+
+
 def create_docx():
     """Create a small DOCX file in memory."""
     document = Document()
     document.add_paragraph("Cybersecurity document.")
     document.add_paragraph("SQL Injection prevention.")
-    
+
     buffer = BytesIO()
     document.save(buffer)
     return buffer.getvalue()
 
+
+# -----------------------------------------
+# TEXT EXTRACTION TESTS
+# -----------------------------------------
 
 def test_extract_txt_success():
     content = b"SQL Injection prevention."
@@ -151,12 +158,16 @@ def test_extract_empty_docx_raises_error():
         extract_document_text(buffer.getvalue(), ".docx")
 
 
+# -----------------------------------------
+# DOCUMENT INGESTION TESTS
+# -----------------------------------------
+
 def test_ingest_rejects_unsupported_file():
     with pytest.raises(
         ValueError,
         match="Only PDF, TXT, and DOCX files are supported.",
     ):
-        ingest_document(b"content", "malware.exe")
+        ingest_document(b"content", "malware.exe", user_id=USER_ID)
 
 
 def test_ingest_txt_success():
@@ -173,7 +184,11 @@ def test_ingest_txt_success():
             "app.rag.ingestion.add_documents",
         ) as mock_add,
     ):
-        result = ingest_document(content, "sample.txt")
+        result = ingest_document(
+            content,
+            "sample.txt",
+            user_id=USER_ID,
+        )
 
     assert result["filename"] == "sample.txt"
     assert result["pages_processed"] == 1
@@ -190,6 +205,7 @@ def test_ingest_txt_success():
     assert stored_data["embeddings"] == mock_embeddings
     assert stored_data["metadatas"][0]["filename"] == "sample.txt"
     assert stored_data["metadatas"][0]["page_number"] == 1
+    assert stored_data["user_id"] == USER_ID
 
 
 def test_ingest_docx_success():
@@ -204,7 +220,11 @@ def test_ingest_docx_success():
             "app.rag.ingestion.add_documents",
         ) as mock_add,
     ):
-        result = ingest_document(content, "security.docx")
+        result = ingest_document(
+            content,
+            "security.docx",
+            user_id=USER_ID,
+        )
 
     assert result["filename"] == "security.docx"
     assert result["pages_processed"] == 1
@@ -212,6 +232,7 @@ def test_ingest_docx_success():
     assert result["status"] == "indexed"
 
     mock_add.assert_called_once()
+    assert mock_add.call_args.kwargs["user_id"] == USER_ID
 
 
 def test_ingest_pdf_success():
@@ -237,10 +258,15 @@ def test_ingest_pdf_success():
             "app.rag.ingestion.add_documents",
         ) as mock_add,
     ):
-        result = ingest_document(b"fake pdf content", "security.pdf")
+        result = ingest_document(
+            b"fake pdf content",
+            "security.pdf",
+            user_id=USER_ID,
+        )
 
     assert result["filename"] == "security.pdf"
     assert result["pages_processed"] == 1
     assert result["chunks_created"] == 1
 
     mock_add.assert_called_once()
+    assert mock_add.call_args.kwargs["user_id"] == USER_ID

@@ -65,7 +65,7 @@ def extract_document_text(content: bytes, extension: str):
     return pages
 
 
-def ingest_document(content: bytes, filename: str):
+def ingest_document(content: bytes, filename: str, user_id: int):
     extension = Path(filename).suffix.lower()
 
     if extension not in SUPPORTED_EXTENSIONS:
@@ -99,6 +99,7 @@ def ingest_document(content: bytes, filename: str):
         embeddings=embeddings,
         metadatas=all_metadatas,
         document_id=document_id,
+        user_id=user_id,
     )
 
     return {

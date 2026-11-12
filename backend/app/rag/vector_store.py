@@ -13,8 +13,19 @@ collection = client.get_or_create_collection(
 )
 
 
-def add_documents(chunks, embeddings, metadatas, document_id):
-    """Store document chunks, embeddings, and metadata."""
+def _validate_user_id(user_id):
+    """Require a valid user ID for every document operation."""
+
+    if user_id is None or not str(user_id).strip():
+        raise ValueError("A valid user_id is required.")
+
+    return str(user_id)
+
+
+def add_documents(chunks, embeddings, metadatas, document_id, user_id):
+    """Store document chunks with their owner's user ID."""
+
+    user_id = _validate_user_id(user_id)
 
     if not chunks:
         return []
@@ -23,6 +34,14 @@ def add_documents(chunks, embeddings, metadatas, document_id):
         raise ValueError(
             "Chunks, embeddings, and metadata must have equal lengths."
         )
+
+    # Enforce ownership on every stored chunk.
+    secured_metadatas = []
+
+    for metadata in metadatas:
+        secured_metadata = metadata.copy()
+        secured_metadata["user_id"] = user_id
+        secured_metadatas.append(secured_metadata)
 
     ids = [
         f"{document_id}_{index}"
@@ -33,7 +52,7 @@ def add_documents(chunks, embeddings, metadatas, document_id):
         ids=ids,
         documents=chunks,
         embeddings=embeddings,
-        metadatas=metadatas,
+        metadatas=secured_metadatas,
     )
 
     return ids
@@ -42,32 +61,45 @@ def add_documents(chunks, embeddings, metadatas, document_id):
 
 def search_documents(
     query_embedding,
+    user_id,
     top_k=5,
     document_id=None,
     distance_threshold=0.60,
 ):
-    """
-    Retrieve the most relevant document chunks.
+    """Search only documents belonging to the authenticated user."""
 
-    Lower cosine distance indicates better semantic similarity.
-    Retrieve extra candidates before applying the relevance threshold.
-    """
+    user_id = _validate_user_id(user_id)
 
-    count = collection.count()
+    # Count this user's records using a filtered get operation.
+    user_records = collection.get(
+        where={"user_id": user_id},
+        include=["metadatas"],
+    )
 
-    if count == 0:
-        return {
-            "documents": [[]],
-            "metadatas": [[]],
-            "distances": [[]],
+    user_count = len(user_records.get("ids", []))
+
+    empty_result = {
+        "documents": [[]],
+        "metadatas": [[]],
+        "distances": [[]],
+    }
+
+    if user_count == 0:
+        return empty_result
+
+    # Always apply the user ownership filter.
+    filters = {"user_id": user_id}
+
+    # If a document is specified, apply both filters.
+    if document_id:
+        filters = {
+            "$and": [
+                {"user_id": user_id},
+                {"document_id": document_id},
+            ]
         }
 
-    filters = None
-
-    if document_id:
-        filters = {"document_id": document_id}
-
-    candidate_count = min(top_k * 3, count)
+    candidate_count = min(top_k * 3, user_count)
 
     results = collection.query(
         query_embeddings=[query_embedding],
@@ -90,7 +122,6 @@ def search_documents(
         if distance <= distance_threshold
     ]
 
-    # Keep the best matching chunks first.
     filtered_results.sort(key=lambda item: item[2])
     filtered_results = filtered_results[:top_k]
 
@@ -100,16 +131,22 @@ def search_documents(
         "distances": [[item[2] for item in filtered_results]],
     }
 
+def delete_document(document_id, user_id):
+    """Delete a document only if it belongs to the specified user."""
 
-def delete_document(document_id):
-    """Delete all chunks belonging to a document and return the count."""
+    user_id = _validate_user_id(user_id)
 
     results = collection.get(
-        where={"document_id": document_id},
+        where={
+            "$and": [
+                {"document_id": document_id},
+                {"user_id": user_id},
+            ]
+        },
         include=["metadatas"],
     )
 
-    document_ids = results["ids"]
+    document_ids = results.get("ids", [])
 
     if not document_ids:
         return 0
@@ -119,18 +156,35 @@ def delete_document(document_id):
     return len(document_ids)
 
 
+def get_collection_count(user_id):
+    """Return the total indexed chunks belonging to one user."""
 
-def get_collection_count():
-    """Return the total number of indexed chunks."""
+    user_id = _validate_user_id(user_id)
 
-    return collection.count()
-def rename_document(document_id, new_filename):
     results = collection.get(
-        where={"document_id": document_id},
+        where={"user_id": user_id},
         include=["metadatas"],
     )
 
-    if not results["ids"]:
+    return len(results.get("ids", []))
+
+
+def rename_document(document_id, new_filename, user_id):
+    """Rename a document only if it belongs to the specified user."""
+
+    user_id = _validate_user_id(user_id)
+
+    results = collection.get(
+        where={
+            "$and": [
+                {"document_id": document_id},
+                {"user_id": user_id},
+            ]
+        },
+        include=["metadatas"],
+    )
+
+    if not results.get("ids"):
         return 0
 
     updated_metadatas = []
@@ -146,15 +200,21 @@ def rename_document(document_id, new_filename):
     )
 
     return len(results["ids"])
-    
-def list_documents():
-    """Return unique uploaded documents and their chunk counts."""
 
-    results = collection.get(include=["metadatas"])
+
+def list_documents(user_id):
+    """List only documents belonging to the specified user."""
+
+    user_id = _validate_user_id(user_id)
+
+    results = collection.get(
+        where={"user_id": user_id},
+        include=["metadatas"],
+    )
 
     documents = {}
 
-    for metadata in results["metadatas"]:
+    for metadata in results.get("metadatas", []):
         document_id = metadata.get("document_id")
 
         if not document_id:
@@ -171,6 +231,7 @@ def list_documents():
         documents[document_id]["chunks"] += 1
 
         page_number = metadata.get("page_number")
+
         if page_number is not None:
             documents[document_id]["pages"].add(page_number)
 
@@ -183,7 +244,7 @@ def list_documents():
     return output
 
 
-def get_document_count():
-    """Return the number of unique uploaded documents."""
+def get_document_count(user_id):
+    """Return the number of unique documents belonging to one user."""
 
-    return len(list_documents())
+    return len(list_documents(user_id))

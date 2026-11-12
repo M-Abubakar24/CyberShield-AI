@@ -6,17 +6,16 @@ from app.rag.generation import generate_answer
 
 def ask_cybersecurity_assistant(
     question: str,
+    user_id: int,
     top_k: int = 5,
 ):
+    # 1. Convert question into an embedding
+    query_embedding = generate_query_embedding(question)
 
-    # 1. Convert question into embedding
-    query_embedding = generate_query_embedding(
-        question
-    )
-
-    # 2. Retrieve relevant document chunks
+    # 2. Retrieve only the current user's document chunks
     results = search_documents(
         query_embedding=query_embedding,
+        user_id=user_id,
         top_k=top_k,
     )
 
@@ -28,7 +27,7 @@ def ask_cybersecurity_assistant(
         return {
             "answer": (
                 "I couldn't find relevant information "
-                "in the cybersecurity knowledge base."
+                "in your cybersecurity knowledge base."
             ),
             "sources": [],
             "retrieval_count": 0,
@@ -39,7 +38,6 @@ def ask_cybersecurity_assistant(
     sources = []
 
     for index, document in enumerate(documents):
-
         metadata = metadatas[index]
 
         filename = metadata.get(
@@ -75,7 +73,7 @@ Content:
 
     context = "\n\n".join(context_parts)
 
-    # 4. Generate AI response
+    # 4. Generate AI response using only retrieved user content
     answer = generate_answer(
         question=question,
         context=context,

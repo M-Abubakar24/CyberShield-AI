@@ -4,6 +4,9 @@ from unittest.mock import patch
 from app.services.chat_service import ask_cybersecurity_assistant
 
 
+USER_ID = 101
+
+
 @patch("app.services.chat_service.generate_answer")
 @patch("app.services.chat_service.search_documents")
 @patch("app.services.chat_service.generate_query_embedding")
@@ -20,14 +23,8 @@ def test_chat_service_success(
             "Use parameterized queries to prevent SQL Injection.",
         ]],
         "metadatas": [[
-            {
-                "filename": "sql_security.pdf",
-                "page_number": 1,
-            },
-            {
-                "filename": "secure_coding.pdf",
-                "page_number": 3,
-            },
+            {"filename": "sql_security.pdf", "page_number": 1},
+            {"filename": "secure_coding.pdf", "page_number": 3},
         ]],
         "distances": [[0.20, 0.30]],
     }
@@ -38,13 +35,13 @@ def test_chat_service_success(
 
     result = ask_cybersecurity_assistant(
         question="How can I prevent SQL Injection?",
+        user_id=USER_ID,
         top_k=5,
     )
 
     assert result["answer"] == (
         "SQL Injection can be prevented using parameterized queries."
     )
-
     assert result["retrieval_count"] == 2
     assert len(result["sources"]) == 2
 
@@ -62,6 +59,7 @@ def test_chat_service_success(
 
     mock_search.assert_called_once_with(
         query_embedding=[0.1, 0.2, 0.3],
+        user_id=USER_ID,
         top_k=5,
     )
 
@@ -86,15 +84,21 @@ def test_chat_service_no_relevant_documents(
 
     result = ask_cybersecurity_assistant(
         question="Explain quantum computing.",
+        user_id=USER_ID,
     )
 
     assert result["answer"] == (
-        "I couldn't find relevant information "
-        "in the cybersecurity knowledge base."
-    )
-
+    "I couldn't find relevant information "
+    "in your cybersecurity knowledge base."
+)
     assert result["sources"] == []
     assert result["retrieval_count"] == 0
+
+    mock_search.assert_called_once_with(
+        query_embedding=[0.1, 0.2, 0.3],
+        user_id=USER_ID,
+        top_k=5,
+    )
 
     mock_generate.assert_not_called()
 
@@ -117,10 +121,12 @@ def test_chat_service_uses_default_top_k(
 
     ask_cybersecurity_assistant(
         question="What is cybersecurity?",
+        user_id=USER_ID,
     )
 
     mock_search.assert_called_once_with(
         query_embedding=[0.1, 0.2, 0.3],
+        user_id=USER_ID,
         top_k=5,
     )
 
@@ -143,11 +149,13 @@ def test_chat_service_uses_custom_top_k(
 
     ask_cybersecurity_assistant(
         question="What is cybersecurity?",
+        user_id=USER_ID,
         top_k=3,
     )
 
     mock_search.assert_called_once_with(
         query_embedding=[0.1, 0.2, 0.3],
+        user_id=USER_ID,
         top_k=3,
     )
 
@@ -172,6 +180,7 @@ def test_chat_service_handles_missing_metadata_fields(
 
     result = ask_cybersecurity_assistant(
         question="Explain this security information.",
+        user_id=USER_ID,
     )
 
     source = result["sources"][0]
@@ -179,6 +188,12 @@ def test_chat_service_handles_missing_metadata_fields(
     assert source["filename"] == "Unknown document"
     assert source["page_number"] == "Unknown"
     assert source["source_id"] == "S1"
+
+    mock_search.assert_called_once_with(
+        query_embedding=[0.1, 0.2, 0.3],
+        user_id=USER_ID,
+        top_k=5,
+    )
 
 
 @patch("app.services.chat_service.generate_answer")
@@ -204,6 +219,7 @@ def test_chat_service_passes_context_to_generator(
 
     ask_cybersecurity_assistant(
         question="How do I prevent SQL Injection?",
+        user_id=USER_ID,
     )
 
     kwargs = mock_generate.call_args.kwargs
@@ -213,6 +229,12 @@ def test_chat_service_passes_context_to_generator(
     assert "Filename: owasp.pdf" in kwargs["context"]
     assert "Page: 5" in kwargs["context"]
     assert "Use parameterized queries." in kwargs["context"]
+
+    mock_search.assert_called_once_with(
+        query_embedding=[0.1, 0.2, 0.3],
+        user_id=USER_ID,
+        top_k=5,
+    )
 
 
 @patch("app.services.chat_service.generate_answer")
@@ -240,9 +262,16 @@ def test_chat_service_limits_content_preview_to_250_characters(
 
     result = ask_cybersecurity_assistant(
         question="Explain this security document.",
+        user_id=USER_ID,
     )
 
     preview = result["sources"][0]["content_preview"]
 
     assert len(preview) == 250
     assert preview == long_document[:250]
+
+    mock_search.assert_called_once_with(
+        query_embedding=[0.1, 0.2, 0.3],
+        user_id=USER_ID,
+        top_k=5,
+    )

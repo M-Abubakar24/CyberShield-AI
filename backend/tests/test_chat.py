@@ -1,24 +1,59 @@
 
-from fastapi.testclient import TestClient
+from types import SimpleNamespace
 from unittest.mock import patch
 
+import pytest
+from fastapi.testclient import TestClient
+
 from app.main import app
+from app.auth.dependencies import get_current_user
+
 
 client = TestClient(app)
 
+TEST_USER_ID = 101
+
+TEST_USER = SimpleNamespace(
+    id=TEST_USER_ID,
+    email="test@example.com",
+    full_name="Test User",
+    is_active=True,
+)
+
+
+@pytest.fixture(autouse=True)
+def authenticated_user():
+    """Simulate an authenticated user for chat API tests."""
+    app.dependency_overrides[get_current_user] = lambda: TEST_USER
+
+    yield
+
+    app.dependency_overrides.pop(get_current_user, None)
+
+
+def test_chat_rejects_unauthenticated_request():
+    """Chat endpoint should reject requests without authentication."""
+    app.dependency_overrides.pop(get_current_user, None)
+
+    response = client.post(
+        "/api/chat/ask",
+        json={"question": "Explain SQL Injection."},
+    )
+
+    assert response.status_code == 401
+
 
 def test_chat_success():
-    """Test a successful cybersecurity question."""
-
+    """Test successful AI chat with user-specific retrieval."""
     mock_result = {
-        "answer": "SQL Injection occurs when untrusted input is included in SQL queries.",
+        "answer": "SQL Injection is a vulnerability caused by unsafe SQL queries.",
         "sources": [
             {
                 "source_id": "S1",
-                "filename": "sample_owasp.txt",
+                "filename": "owasp.txt",
                 "page_number": 1,
-                "distance": 0.35,
-                "content_preview": "SQL Injection prevention guidance.",
+                "distance": 0.25,
+                "content_preview": "SQL Injection prevention techniques.",
             }
         ],
         "retrieval_count": 1,
@@ -27,12 +62,12 @@ def test_chat_success():
     with patch(
         "app.api.chat.ask_cybersecurity_assistant",
         return_value=mock_result,
-    ) as mock_chat:
+    ) as mock_assistant:
 
         response = client.post(
             "/api/chat/ask",
             json={
-                "question": "What is SQL Injection?",
+                "question": "Explain SQL Injection.",
                 "top_k": 5,
             },
         )
@@ -42,19 +77,45 @@ def test_chat_success():
     data = response.json()
 
     assert data["success"] is True
-    assert data["question"] == "What is SQL Injection?"
+    assert data["question"] == "Explain SQL Injection."
     assert data["data"]["answer"] == mock_result["answer"]
+    assert data["data"]["retrieval_count"] == 1
     assert len(data["data"]["sources"]) == 1
 
-    mock_chat.assert_called_once_with(
-        question="What is SQL Injection?",
+    mock_assistant.assert_called_once_with(
+        question="Explain SQL Injection.",
+        user_id=TEST_USER_ID,
         top_k=5,
     )
 
 
-def test_chat_rejects_short_question():
-    """Questions shorter than 5 characters should be rejected."""
+def test_chat_without_relevant_documents():
+    """Test chat response when no relevant documents are found."""
+    mock_result = {
+        "answer": "I couldn't find relevant information in your cybersecurity knowledge base.",
+        "sources": [],
+        "retrieval_count": 0,
+    }
 
+    with patch(
+        "app.api.chat.ask_cybersecurity_assistant",
+        return_value=mock_result,
+    ):
+        response = client.post(
+            "/api/chat/ask",
+            json={"question": "Explain SQL Injection."},
+        )
+
+    assert response.status_code == 200
+
+    data = response.json()["data"]
+
+    assert data["sources"] == []
+    assert data["retrieval_count"] == 0
+
+
+def test_chat_rejects_short_question():
+    """Questions shorter than five characters should be rejected."""
     response = client.post(
         "/api/chat/ask",
         json={"question": "Hi"},
@@ -64,13 +125,12 @@ def test_chat_rejects_short_question():
 
 
 def test_chat_rejects_invalid_top_k():
-    """top_k must be between 1 and 10."""
-
+    """Top-k must be between 1 and 10."""
     response = client.post(
         "/api/chat/ask",
         json={
-            "question": "Explain SQL Injection",
-            "top_k": 15,
+            "question": "Explain SQL Injection.",
+            "top_k": 20,
         },
     )
 
@@ -78,63 +138,30 @@ def test_chat_rejects_invalid_top_k():
 
 
 def test_chat_handles_value_error():
-    """A ValueError should return HTTP 400."""
-
+    """Value errors should return HTTP 400."""
     with patch(
         "app.api.chat.ask_cybersecurity_assistant",
-        side_effect=ValueError("No relevant cybersecurity information found."),
+        side_effect=ValueError("Invalid question."),
     ):
-
         response = client.post(
             "/api/chat/ask",
-            json={"question": "Explain an unsupported topic"},
+            json={"question": "Explain SQL Injection."},
         )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == (
-        "No relevant cybersecurity information found."
-    )
+    assert response.json()["detail"] == "Invalid question."
 
 
 def test_chat_handles_generation_error():
     """Unexpected AI errors should return HTTP 502."""
-
     with patch(
         "app.api.chat.ask_cybersecurity_assistant",
-        side_effect=Exception("Simulated Gemini service failure"),
+        side_effect=RuntimeError("Gemini service unavailable."),
     ):
-
         response = client.post(
             "/api/chat/ask",
-            json={"question": "Explain SQL Injection"},
+            json={"question": "Explain SQL Injection."},
         )
 
     assert response.status_code == 502
     assert response.json()["detail"] == "AI response generation failed."
-
-
-def test_chat_returns_unsupported_topic_message():
-    """Test the response when no relevant knowledge is retrieved."""
-
-    mock_result = {
-        "answer": "I couldn't find relevant information in the cybersecurity knowledge base.",
-        "sources": [],
-        "retrieval_count": 0,
-    }
-
-    with patch(
-        "app.api.chat.ask_cybersecurity_assistant",
-        return_value=mock_result,
-    ):
-
-        response = client.post(
-            "/api/chat/ask",
-            json={"question": "Explain quantum computing"},
-        )
-
-    assert response.status_code == 200
-    assert response.json()["data"]["sources"] == []
-    assert response.json()["data"]["retrieval_count"] == 0
-    assert "couldn't find relevant information" in (
-        response.json()["data"]["answer"]
-    )
