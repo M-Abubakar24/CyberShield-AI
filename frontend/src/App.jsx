@@ -1,19 +1,28 @@
-
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
+import Auth from './Auth'
 
 const API_BASE = 'http://127.0.0.1:8000'
 
+const INITIAL_MESSAGES = [
+  {
+    role: 'assistant',
+    content:
+      'Hello! I am CyberShield AI. Upload your cybersecurity documents and ask me questions about vulnerabilities, OWASP risks, security controls, and remediation.',
+  },
+]
+
 function App() {
+  const [token, setToken] = useState(
+    () => sessionStorage.getItem('cybershield_token') || ''
+  )
+  const [currentUser, setCurrentUser] = useState(null)
+  const [authChecking, setAuthChecking] = useState(true)
+
   const [activeTab, setActiveTab] = useState('Dashboard')
   const [stats, setStats] = useState({ total_documents: 0, total_chunks: 0 })
   const [documents, setDocuments] = useState([])
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: 'Hello! I am CyberShield AI. Upload your cybersecurity documents and ask me questions about vulnerabilities, OWASP risks, security controls, and remediation.',
-    },
-  ])
+  const [messages, setMessages] = useState(INITIAL_MESSAGES)
   const [question, setQuestion] = useState('')
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -22,11 +31,104 @@ function App() {
   const fileInput = useRef(null)
   const chatEnd = useRef(null)
 
+  const handleAuthenticated = (accessToken, user) => {
+    sessionStorage.setItem('cybershield_token', accessToken)
+    setToken(accessToken)
+    setCurrentUser(user)
+    setAuthChecking(false)
+    setActiveTab('Dashboard')
+    setError('')
+    setSuccess('')
+  }
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('cybershield_token')
+    setToken('')
+    setCurrentUser(null)
+    setDocuments([])
+    setStats({ total_documents: 0, total_chunks: 0 })
+    setMessages(INITIAL_MESSAGES)
+    setQuestion('')
+    setActiveTab('Dashboard')
+    setError('')
+    setSuccess('')
+    setAuthChecking(false)
+  }
+
+  // Adds the current user's JWT to every protected API request.
+  const apiFetch = async (url, options = {}) => {
+    if (!token) {
+      throw new Error('Please sign in to continue.')
+    }
+
+    const headers = new Headers(options.headers || {})
+    headers.set('Authorization', `Bearer ${token}`)
+
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    })
+
+    if (response.status === 401) {
+      handleLogout()
+      throw new Error('Your session has expired. Please sign in again.')
+    }
+
+    return response
+  }
+
+  // Verify a saved token whenever the app starts or the token changes.
+  useEffect(() => {
+    let cancelled = false
+
+    const restoreSession = async () => {
+      if (!token) {
+        setCurrentUser(null)
+        setAuthChecking(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Session expired or invalid.')
+        }
+
+        const user = await response.json()
+
+        if (!cancelled) {
+          setCurrentUser(user)
+        }
+      } catch {
+        if (!cancelled) {
+          sessionStorage.removeItem('cybershield_token')
+          setToken('')
+          setCurrentUser(null)
+        }
+      } finally {
+        if (!cancelled) {
+          setAuthChecking(false)
+        }
+      }
+    }
+
+    restoreSession()
+
+    return () => {
+      cancelled = true
+    }
+  }, [token])
+
   const loadDashboard = async () => {
     try {
       const [statsResponse, docsResponse] = await Promise.all([
-        fetch(`${API_BASE}/api/documents/stats`),
-        fetch(`${API_BASE}/api/documents/`),
+        apiFetch(`${API_BASE}/api/documents/stats`),
+        apiFetch(`${API_BASE}/api/documents/`),
       ])
 
       if (!statsResponse.ok || !docsResponse.ok) {
@@ -40,13 +142,18 @@ function App() {
       setDocuments(docsData.documents || [])
       setError('')
     } catch (err) {
-      setError('Backend connection failed. Make sure FastAPI is running.')
+      setError(err.message || 'Could not load dashboard data.')
     }
   }
 
+  // Load only after the current user's session has been verified.
   useEffect(() => {
-    loadDashboard()
-  }, [])
+    if (token && currentUser) {
+      loadDashboard()
+    }
+    // loadDashboard uses the current token through apiFetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, currentUser])
 
   useEffect(() => {
     chatEnd.current?.scrollIntoView({ behavior: 'smooth' })
@@ -64,7 +171,7 @@ function App() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetch(`${API_BASE}/api/documents/upload`, {
+      const response = await apiFetch(`${API_BASE}/api/documents/upload`, {
         method: 'POST',
         body: formData,
       })
@@ -96,7 +203,7 @@ function App() {
     setSuccess('')
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_BASE}/api/documents/${encodeURIComponent(documentId)}`,
         { method: 'DELETE' }
       )
@@ -110,7 +217,7 @@ function App() {
       setSuccess('Document deleted successfully.')
       await loadDashboard()
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Could not delete document.')
     }
   }
 
@@ -129,7 +236,7 @@ function App() {
     setError('')
 
     try {
-      const response = await fetch(`${API_BASE}/api/chat/ask`, {
+      const response = await apiFetch(`${API_BASE}/api/chat/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,17 +251,16 @@ function App() {
         throw new Error(data.detail || 'AI request failed.')
       }
 
-     
-const result = data.data || data;
+      const result = data.data || data
 
-setMessages((previous) => [
-  ...previous,
-  {
-    role: 'assistant',
-    content: result.answer || 'No answer was returned.',
-    sources: result.sources || [],
-  },
-]);
+      setMessages((previous) => [
+        ...previous,
+        {
+          role: 'assistant',
+          content: result.answer || 'No answer was returned.',
+          sources: result.sources || [],
+        },
+      ])
     } catch (err) {
       setMessages((previous) => [
         ...previous,
@@ -173,6 +279,28 @@ setMessages((previous) => [
     { name: 'Documents', icon: '▤' },
     { name: 'AI Assistant', icon: '✧' },
   ]
+
+  if (authChecking) {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card">
+          <h2>CyberShield AI</h2>
+          <p>Verifying your secure session...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!token || !currentUser) {
+    return <Auth onAuthenticated={handleAuthenticated} />
+  }
+
+  const userInitials = (currentUser.full_name || currentUser.email || 'U')
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 
   return (
     <div className="app-shell">
@@ -210,13 +338,18 @@ setMessages((previous) => [
             <p>Powered by retrieval-augmented generation.</p>
             <span className="online-indicator">● System ready</span>
           </div>
+
           <div className="user-profile">
-            <div className="avatar">CS</div>
-            <div>
-              <strong>Security Analyst</strong>
-              <span>Local workspace</span>
+            <div className="avatar">{userInitials}</div>
+            <div className="user-profile-details">
+              <strong>{currentUser.full_name}</strong>
+              <span>{currentUser.email}</span>
             </div>
           </div>
+
+          <button className="logout-button" onClick={handleLogout}>
+            <span>↪</span> Sign out
+          </button>
         </div>
       </aside>
 
@@ -228,7 +361,7 @@ setMessages((previous) => [
           </div>
           <div className="topbar-right">
             <span className="system-status"><i /> Backend connected when available</span>
-            <div className="top-avatar">CS</div>
+            <div className="top-avatar">{userInitials}</div>
           </div>
         </header>
 
@@ -455,50 +588,51 @@ setMessages((previous) => [
                 {messages.map((message, index) => (
                   <div className={`message ${message.role}`} key={index}>
                     <div className="message-avatar">
-                      {message.role === 'assistant' ? '✧' : 'CS'}
+                      {message.role === 'assistant' ? '✧' : userInitials}
                     </div>
                     <div className="message-body">
                       <span className="message-author">
-                        {message.role === 'assistant' ? 'CyberShield AI' : 'You'}
+                        {message.role === 'assistant' ? 'CyberShield AI' : currentUser.full_name}
                       </span>
                       <div className="message-bubble">{message.content}</div>
-                      
-{message.sources?.length > 0 && (
-  <div className="sources">
-    <strong>Retrieved knowledge sources</strong>
 
-    {message.sources.map((source, i) => (
-      <div className="source-item" key={source.source_id || i}>
-        <div className="source-header">
-          <strong>
-            {source.filename || source.source || `Source ${i + 1}`}
-          </strong>
+                      {message.sources?.length > 0 && (
+                        <div className="sources">
+                          <strong>Retrieved knowledge sources</strong>
 
-          <span>
-            {source.page_number
-              ? `Page ${source.page_number}`
-              : 'Document source'}
-          </span>
-        </div>
+                          {message.sources.map((source, i) => (
+                            <div className="source-item" key={source.source_id || i}>
+                              <div className="source-header">
+                                <strong>
+                                  {source.filename || source.source || `Source ${i + 1}`}
+                                </strong>
 
-        {typeof source.distance === 'number' && (
-          <div className="source-relevance">
-            Relevance distance: {source.distance.toFixed(3)}
-          </div>
-        )}
+                                <span>
+                                  {source.page_number
+                                    ? `Page ${source.page_number}`
+                                    : 'Document source'}
+                                </span>
+                              </div>
 
-        {source.content_preview && (
-          <p className="source-preview">
-            {source.content_preview}
-          </p>
-        )}
-      </div>
-    ))}
-  </div>
-)}
+                              {typeof source.distance === 'number' && (
+                                <div className="source-relevance">
+                                  Relevance distance: {source.distance.toFixed(3)}
+                                </div>
+                              )}
+
+                              {source.content_preview && (
+                                <p className="source-preview">
+                                  {source.content_preview}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
+
                 {loading && (
                   <div className="message assistant">
                     <div className="message-avatar">✧</div>

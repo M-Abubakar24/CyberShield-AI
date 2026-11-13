@@ -1156,3 +1156,725 @@ td {
   font-size: 12px;
   line-height: 1.6;
 }
+
+/* Blue accent for prominent dashboard text */
+
+.brand h2,
+.topbar h1,
+.welcome-banner h2,
+.section-heading h2,
+.panel-heading h3,
+.upload-panel h2,
+.chat-heading h2 {
+  color: #8db5ff;
+}
+
+/* Brand and welcome text */
+.brand h2 span {
+  color: #6e9cff;
+}
+
+.brand p {
+  color: #81adff;
+}
+
+/* Sidebar navigation and sign-out */
+.nav-item,
+.logout-button {
+  color: #8eb3ff;
+}
+
+.nav-item.active {
+  color: #a8c8ff;
+}
+
+/* Document and dashboard headings */
+.document-info strong,
+.quick-action strong,
+.empty-state strong,
+.stat-value {
+  color: #8db5ff;
+}
+
+/* User profile text */
+.user-profile strong {
+  color: #8db5ff;
+}
+
+/* AI assistant headings */
+.chat-heading h2 {
+  color: #8db5ff;
+}
+.logout-button {
+  background: #000000 !important;
+  color: #6e9cff !important;
+  border: 1px solid #26364e;
+  border-radius: 7px;
+}
+
+.logout-button:hover {
+  background: #080d18 !important;
+  border-color: #6e9cff;
+}
+
+/* =================================
+   CYBERSHIELD AI - MODERN SIDEBAR
+================================= */
+
+.sidebar {
+  background: linear-gradient(180deg, #0b1528 0%, #080f1d 100%);
+  border-right: 1px solid rgba(59, 130, 246, 0.22);
+  box-shadow: 8px 0 30px rgba(0, 0, 0, 0.15);
+}
+
+.brand {
+  padding-bottom: 40px;
+}
+
+.brand-icon {
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  box-shadow: 0 0 22px rgba(37, 99, 235, 0.35);
+}
+
+.brand h2 {
+  color: #eaf2ff;
+  font-size: 20px;
+}
+
+.brand h2 span {
+  color: #38bdf8;
+}
+
+.side-label {
+  color: #647fa7;
+  letter-spacing: 2px;
+}
+
+.nav-item {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 13px;
+  transition: all 0.25s ease;
+}
+
+.nav-item:hover {
+  color: #ffffff;
+  background: rgba(37, 99, 235, 0.13);
+  border-color: rgba(59, 130, 246, 0.2);
+  transform: translateX(3px);
+}
+
+.nav-item.active {
+  color: #60c5ff;
+  background: linear-gradient(
+    100deg,
+    rgba(37, 99, 235, 0.28),
+    rgba(6, 182, 212, 0.09)
+  );
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: inset 3px 0 #38bdf8;
+}
+
+.nav-icon {
+  color: #60a5fa;
+}
+
+.nav-count {
+  background: #1d4ed8;
+  color: white;
+  border: 1px solid #3b82f6;
+}
+
+/* =================================
+   TOP NAVIGATION
+================================= */
+
+.topbar {
+  background: rgba(8, 17, 32, 0.96);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(14px);
+}
+
+.breadcrumb {
+  color: #8298b8;
+}
+
+.breadcrumb span {
+  color: #38bdf8;
+}
+
+.topbar h1 {
+  color: #eaf2ff;
+  font-size: 23px;
+  letter-spacing: -0.5px;
+}
+
+.system-status {
+  color: #a8bdd8;
+}
+
+/* =================================
+   USER PROFILE AND SIGN OUT
+================================= */
+
+.user-profile {
+  border-top-color: rgba(59, 130, 246, 0.2);
+}
+
+.avatar,
+.top-avatar {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  color: white;
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.25);
+}
+
+.user-profile strong {
+  color: #e2edff;
+}
+
+.logout-button {
+  background: #000000 !important;
+  color: #60a5fa !important;
+  border: 1px solid #294b78;
+  border-radius: 9px;
+  transition: all 0.25s ease;
+}
+
+.logout-button:hover {
+  background: #101c30 !important;
+  border-color: #38bdf8;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+}
+
+/* ==========================================
+   CYBERSHIELD AI - MODERN DASHBOARD HERO
+========================================== */
+
+.welcome-banner {
+  position: relative;
+  min-height: 255px;
+  padding: 38px 42px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 85% 40%,
+      rgba(14, 165, 233, 0.22),
+      transparent 32%
+    ),
+    linear-gradient(120deg, #102447, #0b1830 65%, #101f3d);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 18px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-banner::after {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  right: 5%;
+  top: -100px;
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 25px rgba(56, 189, 248, 0.025),
+    0 0 0 55px rgba(56, 189, 248, 0.025);
+  pointer-events: none;
+}
+
+.welcome-banner h2 {
+  color: #eaf4ff;
+  font-size: clamp(25px, 3vw, 35px);
+  line-height: 1.25;
+}
+
+.welcome-banner h2 span {
+  color: #38bdf8;
+}
+
+.welcome-banner p {
+  color: #b5c9e5;
+  font-size: 13px;
+}
+
+.eyebrow {
+  color: #38bdf8;
+  letter-spacing: 2.2px;
+}
+
+/* Hero button */
+
+.welcome-banner .primary-button {
+  background: linear-gradient(110deg, #2563eb, #0891b2);
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  box-shadow: 0 6px 22px rgba(37, 99, 235, 0.28);
+}
+
+.welcome-banner .primary-button:hover {
+  box-shadow: 0 8px 28px rgba(14, 165, 233, 0.35);
+}
+
+/* ==========================================
+   DASHBOARD SECTION HEADINGS
+========================================== */
+
+.section-heading h2,
+.panel-heading h3 {
+  color: #e4f0ff;
+}
+
+.section-heading p,
+.panel-heading p {
+  color: #91a9c8;
+}
+
+.refresh-button {
+  color: #60c5ff;
+  border-color: #294b78;
+  background: #101f36;
+}
+
+.refresh-button:hover {
+  background: #172e4e;
+  border-color: #38bdf8;
+}
+
+/* ==========================================
+   STATISTICS CARDS
+========================================== */
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  padding: 22px;
+  background: linear-gradient(145deg, #12233c, #0d192c);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  border-radius: 15px;
+  transition: transform 0.25s ease, border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 15px;
+  right: 15px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #38bdf8, transparent);
+  opacity: 0.65;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.stat-top {
+  color: #b4c8e4;
+}
+
+.stat-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(37, 99, 235, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.18);
+}
+
+.stat-value {
+  color: #eaf4ff;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.stat-detail {
+  color: #8da5c4;
+}
+
+/* ==========================================
+   DASHBOARD PANELS
+========================================== */
+
+.panel {
+  background: linear-gradient(145deg, #101e33, #0c1728);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 15px;
+  transition: border-color 0.25s ease;
+}
+
+.panel:hover {
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.document-row {
+  border-top-color: rgba(100, 140, 190, 0.15);
+}
+
+.document-info strong {
+  color: #e2edff;
+}
+
+.file-icon {
+  background: rgba(37, 99, 235, 0.17);
+  color: #60c5ff;
+}
+
+.status-pill {
+  border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+/* ==========================================
+   QUICK ACTIONS
+========================================== */
+
+.quick-action {
+  background: #111f34;
+  border: 1px solid rgba(59, 130, 246, 0.23);
+  border-radius: 11px;
+  transition: all 0.25s ease;
+}
+
+.quick-action:hover {
+  transform: translateY(-2px);
+  background: #172d4b;
+  border-color: #38bdf8;
+}
+
+.action-icon {
+  background: rgba(37, 99, 235, 0.2);
+  color: #38bdf8;
+}
+
+/* ==========================================
+   RESPONSIVE HERO
+========================================== */
+
+@media (max-width: 720px) {
+  .welcome-banner {
+    padding: 27px 22px;
+    min-height: 220px;
+  }
+
+  .welcome-banner h2 {
+    font-size: 25px;
+  }
+
+  .stat-card {
+    padding: 18px;
+  }
+}
+
+/* ==========================================
+   CYBERSHIELD AI - DOCUMENT MANAGEMENT
+========================================== */
+
+.upload-panel {
+  position: relative;
+  padding: 45px 25px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.16), transparent 55%),
+    linear-gradient(145deg, #10213a, #0c1728);
+  border: 1px dashed #3b82f6;
+  border-radius: 16px;
+  transition: all 0.25s ease;
+}
+
+.upload-panel:hover {
+  border-color: #38bdf8;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.09);
+}
+
+.upload-symbol {
+  background: rgba(37, 99, 235, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.12);
+}
+
+.upload-panel h2 {
+  color: #e6f2ff;
+}
+
+.upload-panel p {
+  color: #a5bad5;
+}
+
+.upload-hint {
+  color: #60a5fa;
+}
+
+.documents-table-panel {
+  background: linear-gradient(145deg, #101e33, #0c1728);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  border-radius: 15px;
+}
+
+th {
+  color: #60a5fa;
+  background: rgba(37, 99, 235, 0.06);
+}
+
+td {
+  color: #b9cbe3;
+}
+
+.file-cell strong {
+  color: #e2edff;
+}
+
+.delete-button {
+  transition: all 0.2s ease;
+}
+
+.delete-button:hover {
+  border-color: #fb7185;
+  box-shadow: 0 0 12px rgba(251, 113, 133, 0.12);
+}
+
+/* ==========================================
+   CYBERSHIELD AI - CHAT INTERFACE
+========================================== */
+
+.chat-panel {
+  background: linear-gradient(145deg, #101e33, #0a1424);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+}
+
+.chat-heading {
+  background: rgba(37, 99, 235, 0.07);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.22);
+}
+
+.assistant-avatar {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  color: white;
+  box-shadow: 0 0 18px rgba(37, 99, 235, 0.25);
+}
+
+.chat-heading h2 {
+  color: #e6f2ff;
+}
+
+.chat-heading p {
+  color: #94abc9;
+}
+
+.rag-badge {
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.08);
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+.message-avatar {
+  background: linear-gradient(135deg, #1d4ed8, #0e7490);
+  color: white;
+}
+
+.message.user .message-avatar {
+  background: linear-gradient(135deg, #4f46e5, #2563eb);
+  color: white;
+}
+
+.message-bubble {
+  background: #14243b;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  color: #dceaff;
+  border-radius: 4px 13px 13px 13px;
+}
+
+.message.user .message-bubble {
+  background: linear-gradient(120deg, #1d4ed8, #164e9c);
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #ffffff;
+}
+
+.message-author {
+  color: #93b4df;
+}
+
+.sources {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(56, 189, 248, 0.25);
+  color: #93c5fd;
+  border-radius: 10px;
+}
+
+.source-item {
+  color: #b8cbe5;
+}
+
+/* ==========================================
+   CHAT INPUT
+========================================== */
+
+.chat-input-area {
+  background: #081321;
+  border: 1px solid #294b78;
+  border-radius: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.chat-input-area:focus-within {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.08);
+}
+
+.chat-input-area input {
+  color: #eaf4ff;
+}
+
+.chat-input-area button {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chat-input-area button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 17px rgba(56, 189, 248, 0.3);
+}
+
+.chat-disclaimer {
+  color: #7892b5;
+}
+
+/* ==========================================
+   EMPTY STATES AND ALERTS
+========================================== */
+
+.empty-state > div {
+  background: rgba(37, 99, 235, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.empty-state strong {
+  color: #dceaff;
+}
+
+.empty-state p {
+  color: #91a8c7;
+}
+
+.error-alert {
+  border-radius: 10px;
+}
+
+.success-alert {
+  border-radius: 10px;
+}
+
+/* ==========================================
+   CYBERSHIELD AI - POLISHED INTERACTIONS
+========================================== */
+
+/* Smooth page appearance */
+.page-content {
+  animation: pageFadeIn 0.45s ease both;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth card interactions */
+.stat-card,
+.panel,
+.documents-table-panel,
+.chat-panel {
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* Refined button interactions */
+button {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Custom scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #28548b #0a1424;
+}
+
+*::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #0a1424;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #28548b;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+}
+
+/* Better text selection */
+::selection {
+  background: rgba(56, 189, 248, 0.3);
+  color: #ffffff;
+}
+
+/* Focus accessibility */
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 3px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile refinements */
+@media (max-width: 720px) {
+  .page-content {
+    animation: none;
+  }
+
+  .nav-item:hover {
+    transform: none;
+  }
+
+  .stat-card:hover,
+  .quick-action:hover {
+    transform: none;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+  }
+}

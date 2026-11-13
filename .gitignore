@@ -1,21 +1,25 @@
+
 # Python
 __pycache__/
 *.py[cod]
 venv/
+.venv/
 .env
 *.db
-
-# Virtual environments
-.venv/
 
 # IDE
 .vscode/
 
 # ChromaDB
 data/chroma_db/
+backend/data/chroma_db/
 
 # Uploaded files
 data/uploads/
+backend/data/uploads/
 
 # Logs
 *.log
+
+# Frontend backups
+frontend/src/*.backup.*
